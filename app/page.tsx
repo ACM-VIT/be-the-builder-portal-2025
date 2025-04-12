@@ -12,7 +12,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f8f8f8] dark:bg-[#0a0a0a] monospace">
+    <div className="flex flex-col min-h-screen bg-gradient-to-r from-violet-1000 via-violet-800 to-violet-1000 monospace">
       <SplashCursor />
       <main className="flex-1 flex flex-col">
         <div className="relative w-full h-screen">
@@ -24,7 +24,6 @@ export default function Home() {
               />
             )}
           </div>
-
           <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 z-10 text-center">
             <h1 className="pp-editorial text-4xl md:text-6xl lg:text-8xl mb-4">
               Be The Builder
