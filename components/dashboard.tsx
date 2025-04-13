@@ -172,7 +172,7 @@ export function Dashboard({ user }: DashboardProps) {
   
   // Timer for countdown
   useEffect(() => {
-    if (deadline) {
+    if (deadline && !isNaN(deadline.getTime())) {
       const updateTimer = () => {
         const now = new Date()
         const diff = deadline.getTime() - now.getTime()
@@ -193,6 +193,7 @@ export function Dashboard({ user }: DashboardProps) {
         setTimeRemaining({ days, hours, minutes, seconds })
       }
       
+      // Run immediately and then set up interval
       updateTimer()
       timerRef.current = setInterval(updateTimer, 1000)
       
@@ -201,6 +202,9 @@ export function Dashboard({ user }: DashboardProps) {
           clearInterval(timerRef.current)
         }
       }
+    } else {
+      // If no valid deadline, ensure timeRemaining is null
+      setTimeRemaining(null)
     }
   }, [deadline])
   
@@ -256,7 +260,11 @@ export function Dashboard({ user }: DashboardProps) {
       if (response.ok) {
         const data = await response.json()
         if (data.deadline) {
-          setDeadline(new Date(data.deadline))
+          const deadlineDate = new Date(data.deadline)
+          // Validate that we have a valid date
+          if (!isNaN(deadlineDate.getTime())) {
+            setDeadline(deadlineDate)
+          }
         }
       } else {
         console.warn(`Error fetching config: ${response.status} ${response.statusText}`)

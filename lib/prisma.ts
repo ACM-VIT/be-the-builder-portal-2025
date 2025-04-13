@@ -19,7 +19,7 @@ const prisma = globalForPrisma.prisma ?? new PrismaClient({
 })
 
 // In development, keep the same Prisma instance across hot reloads
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== 'development') {
   globalForPrisma.prisma = prisma
 }
 
