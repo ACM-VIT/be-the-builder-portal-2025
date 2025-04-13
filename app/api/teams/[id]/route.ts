@@ -18,10 +18,13 @@ type TeamWithUsers = Prisma.TeamGetPayload<{
   }
 }>
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+type Context = {
+  params: {
+    id: string;
+  };
+};
+
+export async function GET(request: NextRequest, context: Context) {
   try {
     // Get user session
     const session = await getServerSession(authOptions)
@@ -35,7 +38,7 @@ export async function GET(
     
     // Get team data with users
     const team = await prisma.team.findUnique({
-      where: { id: params.id },
+      where: { id: context.params.id },
       include: {
         users: {
           select: {
