@@ -508,9 +508,9 @@ export function Dashboard({ user }: DashboardProps) {
                           <CheckCircle className="h-3 w-3 mr-1 text-emerald-400" />
                           Idea Submitted
                         </p>
-                        <Badge className="bg-emerald-500/30 text-white hover:bg-emerald-500/40 text-xs">
+                        {/* <Badge className="bg-emerald-500/30 text-white hover:bg-emerald-500/40 text-xs">
                           {new Date(team.submittedAt || "").toLocaleDateString()}
-                        </Badge>
+                        </Badge> */}
                       </div>
                       <p className="text-white/90 text-sm font-medium line-clamp-1">
                         {team.ideaTitle || "No Title"}
@@ -616,7 +616,6 @@ export function Dashboard({ user }: DashboardProps) {
           
           <TeamSubmission 
             team={team} 
-            onSubmissionUpdate={handleFetchTeamData} 
           />
           
           <h3 className="text-xl text-white font-bold mb-4">Team Members</h3>

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useFormState, useFormStatus } from "react-dom"
+import { useOptimistic } from "@/lib/hooks/use-optimistic"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -28,6 +29,8 @@ interface TeamSubmissionProps {
     isSubmitted?: boolean
   }
 }
+
+type TeamData = TeamSubmissionProps['team']
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -61,9 +64,30 @@ export function TeamSubmission({ team }: TeamSubmissionProps) {
   const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
 
+  // Optimistic update state
+  const [optimisticTeam, updateOptimisticTeam] = useOptimistic({
+    initialData: team,
+    updateFn: (currentState: TeamData, newData: Partial<TeamData>) => ({
+      ...currentState,
+      ...newData,
+    })
+  })
+
   const initialState = { message: '', error: '' }
 
   const [state, formAction] = useFormState(async (prevState: any, formData: FormData) => {
+    // Update optimistically
+    const title = formData.get('title')?.toString()
+    const description = formData.get('description')?.toString()
+    const link = formData.get('link')?.toString()
+
+    updateOptimisticTeam({
+      ideaTitle: title || null,
+      ideaDescription: description || null,
+      ideaLink: link || null,
+      isSubmitted: true,
+    })
+
     const result = await submitTeamIdea(formData)
     
     if (result.success) {
@@ -72,6 +96,8 @@ export function TeamSubmission({ team }: TeamSubmissionProps) {
       router.refresh()
       return { message: 'Success', error: '' }
     } else {
+      // Revert optimistic update on error by refreshing
+      router.refresh()
       notify("Error", result.error || "Failed to submit idea", "error")
       return { message: '', error: result.error || "Failed to submit idea" }
     }
@@ -92,7 +118,7 @@ export function TeamSubmission({ team }: TeamSubmissionProps) {
         <Input
           id="title"
           name="title"
-          defaultValue={team?.ideaTitle || ""}
+          defaultValue={optimisticTeam?.ideaTitle || ""}
           placeholder="Enter your project title"
           className="bg-white/10 border-white/20 text-white w-full"
           required
@@ -105,7 +131,7 @@ export function TeamSubmission({ team }: TeamSubmissionProps) {
         <Textarea
           id="description"
           name="description"
-          defaultValue={team?.ideaDescription || ""}
+          defaultValue={optimisticTeam?.ideaDescription || ""}
           placeholder="Describe your project idea in detail"
           className="bg-white/10 border-white/20 text-white min-h-[150px] lg:min-h-[200px] w-full resize-y"
           required
@@ -118,7 +144,7 @@ export function TeamSubmission({ team }: TeamSubmissionProps) {
         <Input
           id="link"
           name="link"
-          defaultValue={team?.ideaLink || ""}
+          defaultValue={optimisticTeam?.ideaLink || ""}
           placeholder="https://your-project-demo.com"
           className="bg-white/10 border-white/20 text-white w-full"
           type="url"
@@ -148,7 +174,7 @@ export function TeamSubmission({ team }: TeamSubmissionProps) {
     <div className="bg-white/10 rounded-xl p-4 sm:p-6 lg:p-8 mb-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 mb-6">
         <h3 className="text-xl lg:text-2xl text-white font-bold">Project Idea</h3>
-        {team.isSubmitted && !isEditingIdea && (
+        {optimisticTeam.isSubmitted && !isEditingIdea && (
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <Badge className="bg-emerald-500/30 text-white hover:bg-emerald-500/40 px-3 py-1 w-fit">
               <CheckCircle className="h-3 w-3 mr-1.5" /> Submitted
@@ -165,25 +191,25 @@ export function TeamSubmission({ team }: TeamSubmissionProps) {
         )}
       </div>
       
-      {team.isSubmitted ? (
+      {optimisticTeam.isSubmitted ? (
         isEditingIdea ? (
           <SubmissionForm />
         ) : (
           <div className="bg-white/5 rounded-lg p-4 sm:p-5 lg:p-6 space-y-4">
-            <h4 className="text-xl lg:text-2xl font-bold text-white">{team.ideaTitle || "No Title"}</h4>
+            <h4 className="text-xl lg:text-2xl font-bold text-white">{optimisticTeam.ideaTitle || "No Title"}</h4>
             <p className="text-white/80 whitespace-pre-line leading-relaxed">
-              {team.ideaDescription || "No description provided."}
+              {optimisticTeam.ideaDescription || "No description provided."}
             </p>
-            {team.ideaLink && (
+            {optimisticTeam.ideaLink && (
               <div className="flex items-center pt-2">
                 <LinkIcon className="h-4 w-4 text-pink-400 mr-2 flex-shrink-0" />
                 <a 
-                  href={team.ideaLink} 
+                  href={optimisticTeam.ideaLink} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-pink-400 hover:text-pink-300 underline text-sm break-all"
                 >
-                  {team.ideaLink}
+                  {optimisticTeam.ideaLink}
                 </a>
               </div>
             )}
