@@ -101,7 +101,7 @@ export function TeamInfo({ team, deadline, onTeamUpdate }: TeamInfoProps) {
               {team?.users?.length || 0} members
             </Badge>
           </div>
-          <p className="text-white/70 mt-1">ID: {team?.id}</p>
+          {/* <p className="text-white/70 mt-1">ID: {team?.id}</p> */}
         </div>
       </div>
       

@@ -1,13 +1,13 @@
 import { PrismaClient } from "@prisma/client"
 
 // Using global to avoid multiple instances during development
-const globalForPrisma = global as unknown as {
+const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
 // For Supabase + PgBouncer, we need to use the DIRECT_URL for auth flows
 // to avoid the "prepared statement already exists" error
-const prisma = globalForPrisma.prisma || new PrismaClient({
+const prisma = globalForPrisma.prisma ?? new PrismaClient({
   log: ['error', 'warn'],
   datasources: {
     db: {

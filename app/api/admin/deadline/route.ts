@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
       try {
         deadlineDate = new Date(deadline)
         if (isNaN(deadlineDate.getTime())) {
-          throw new Error("Invalid date")
+          throw new Error("")
         }
       } catch (e) {
         return NextResponse.json(

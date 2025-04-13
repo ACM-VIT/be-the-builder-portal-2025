@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useFormState, useFormStatus } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -14,6 +15,9 @@ import {
   Link as LinkIcon 
 } from "lucide-react"
 import { useNotifications } from "@/lib/contexts/notification-context"
+import { submitTeamIdea } from "@/app/actions/team"
+import { useRouter } from "next/navigation"
+import { useRef } from "react"
 
 interface TeamSubmissionProps {
   team: {
@@ -25,134 +29,119 @@ interface TeamSubmissionProps {
   }
 }
 
-interface TeamSubmissionClientProps extends TeamSubmissionProps {
-  onSubmissionUpdate: () => void
-}
-
-// Client-side wrapper component that handles the update callback
-export function TeamSubmission({ team }: TeamSubmissionProps) {
-  const handleUpdate = () => {
-    // Refresh the page or trigger a server action to refresh data
-    window.location.reload()
-  }
-
-  return <TeamSubmissionClient team={team} onSubmissionUpdate={handleUpdate} />
-}
-
-// Internal client component that handles all the interactivity
-function TeamSubmissionClient({ team, onSubmissionUpdate }: TeamSubmissionClientProps) {
-  const [isEditingIdea, setIsEditingIdea] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [ideaTitle, setIdeaTitle] = useState(team?.ideaTitle || "")
-  const [ideaDescription, setIdeaDescription] = useState(team?.ideaDescription || "")
-  const [ideaLink, setIdeaLink] = useState(team?.ideaLink || "")
+function SubmitButton() {
+  const { pending } = useFormStatus()
   
-  const { notify } = useNotifications()
+  return (
+    <Button 
+      type="submit"
+      className="bg-emerald-500 hover:bg-emerald-600 text-white w-full sm:w-auto min-w-[140px]"
+      disabled={pending}
+      aria-disabled={pending}
+    >
+      {pending ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Submitting...
+        </>
+      ) : (
+        <>
+          <Send className="mr-2 h-4 w-4" />
+          Submit Project
+        </>
+      )}
+    </Button>
+  )
+}
 
-  const submitIdea = async () => {
-    if (!ideaTitle.trim() || ideaTitle.trim().length < 3) {
-      notify("Error", "Idea title must be at least 3 characters", "error")
-      return
-    }
+// Client component that handles all the interactivity
+export function TeamSubmission({ team }: TeamSubmissionProps) {
+  const [isEditingIdea, setIsEditingIdea] = useState(false)
+  const { notify } = useNotifications()
+  const router = useRouter()
+  const formRef = useRef<HTMLFormElement>(null)
+
+  const initialState = { message: '', error: '' }
+
+  const [state, formAction] = useFormState(async (prevState: any, formData: FormData) => {
+    const result = await submitTeamIdea(formData)
     
-    if (!ideaDescription.trim() || ideaDescription.trim().length < 10) {
-      notify("Error", "Idea description must be at least 10 characters", "error")
-      return
+    if (result.success) {
+      setIsEditingIdea(false)
+      notify("Success", "Idea submitted successfully", "success")
+      router.refresh()
+      return { message: 'Success', error: '' }
+    } else {
+      notify("Error", result.error || "Failed to submit idea", "error")
+      return { message: '', error: result.error || "Failed to submit idea" }
     }
-    
-    setIsSubmitting(true)
-    
-    try {
-      const response = await fetch('/api/teams/submit-idea', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: ideaTitle.trim(),
-          description: ideaDescription.trim(),
-          link: ideaLink.trim() || null
-        })
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        setIsEditingIdea(false)
-        notify("Success", "Idea submitted successfully", "success")
-        onSubmissionUpdate()
-      } else {
-        const error = await response.json()
-        notify("Error", error.error || "Failed to submit idea", "error")
-      }
-    } catch (error) {
-      console.error("Error submitting idea:", error)
-      notify("Error", "Failed to submit idea", "error")
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+  }, initialState)
 
   const SubmissionForm = () => (
-    <div className="space-y-6">
+    <form action={formAction} ref={formRef} className="space-y-6">
+      {state?.error && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+          <div className="flex items-center text-red-400">
+            <AlertTriangle className="h-4 w-4 mr-2" />
+            <span>{state.error}</span>
+          </div>
+        </div>
+      )}
       <div>
-        <label className="block text-white/80 text-sm font-medium mb-2">Project Title</label>
+        <label htmlFor="title" className="block text-white/80 text-sm font-medium mb-2">Project Title</label>
         <Input
-          value={ideaTitle}
-          onChange={(e) => setIdeaTitle(e.target.value)}
+          id="title"
+          name="title"
+          defaultValue={team?.ideaTitle || ""}
           placeholder="Enter your project title"
           className="bg-white/10 border-white/20 text-white w-full"
+          required
+          minLength={3}
+          aria-describedby="title-error"
         />
       </div>
       <div>
-        <label className="block text-white/80 text-sm font-medium mb-2">Project Description</label>
+        <label htmlFor="description" className="block text-white/80 text-sm font-medium mb-2">Project Description</label>
         <Textarea
-          value={ideaDescription}
-          onChange={(e) => setIdeaDescription(e.target.value)}
+          id="description"
+          name="description"
+          defaultValue={team?.ideaDescription || ""}
           placeholder="Describe your project idea in detail"
           className="bg-white/10 border-white/20 text-white min-h-[150px] lg:min-h-[200px] w-full resize-y"
+          required
+          minLength={10}
+          aria-describedby="description-error"
         />
       </div>
       <div>
-        <label className="block text-white/80 text-sm font-medium mb-2">Demo Link (Optional)</label>
+        <label htmlFor="link" className="block text-white/80 text-sm font-medium mb-2">Demo Link (Optional)</label>
         <Input
-          value={ideaLink}
-          onChange={(e) => setIdeaLink(e.target.value)}
+          id="link"
+          name="link"
+          defaultValue={team?.ideaLink || ""}
           placeholder="https://your-project-demo.com"
           className="bg-white/10 border-white/20 text-white w-full"
+          type="url"
+          aria-describedby="link-error"
         />
       </div>
       <div className="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-2">
         {isEditingIdea && (
           <Button 
+            type="button"
             variant="outline"
             className="border-white/20 text-white hover:bg-white/10 w-full sm:w-auto"
             onClick={() => {
               setIsEditingIdea(false)
-              setIdeaTitle(team.ideaTitle || "")
-              setIdeaDescription(team.ideaDescription || "")
-              setIdeaLink(team.ideaLink || "")
+              formRef.current?.reset()
             }}
           >
             Cancel
           </Button>
         )}
-        <Button 
-          className="bg-emerald-500 hover:bg-emerald-600 text-white w-full sm:w-auto min-w-[140px]"
-          onClick={submitIdea}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {isEditingIdea ? 'Updating...' : 'Submitting...'}
-            </>
-          ) : (
-            <>
-              <Send className="mr-2 h-4 w-4" />
-              {isEditingIdea ? 'Update Submission' : 'Submit Project'}
-            </>
-          )}
-        </Button>
+        <SubmitButton />
       </div>
-    </div>
+    </form>
   )
 
   return (
