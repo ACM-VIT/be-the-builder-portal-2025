@@ -22,7 +22,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/",
     signOut: "/",
-    error: "/auth/error",
+    error: "/",
     newUser: "/",
   },
   debug: process.env.NEXTAUTH_DEBUG === "1",

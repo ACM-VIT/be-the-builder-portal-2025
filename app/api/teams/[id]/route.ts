@@ -18,15 +18,15 @@ type TeamWithUsers = Prisma.TeamGetPayload<{
   }
 }>
 
-type Context = {
-  params: {
-    id: string;
-  };
-};
-
-export async function GET(request: NextRequest, context: Context) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    // Get user session
+    // Await the resolved params from the promise.
+    const resolvedParams = await params
+    
+    // Get user session.
     const session = await getServerSession(authOptions)
     
     if (!session?.user) {
@@ -36,9 +36,9 @@ export async function GET(request: NextRequest, context: Context) {
       )
     }
     
-    // Get team data with users
+    // Get team data with users.
     const team = await prisma.team.findUnique({
-      where: { id: context.params.id },
+      where: { id: resolvedParams.id },
       include: {
         users: {
           select: {
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest, context: Context) {
       )
     }
     
-    // Only allow team members or admins to view team data
+    // Allow access only if the user is an admin or a team member.
     const isTeamMember = team.users.some(user => user.id === session.user.id)
     const isAdmin = session.user.isAdmin
     
