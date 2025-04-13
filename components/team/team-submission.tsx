@@ -16,11 +16,31 @@ import {
 import { useNotifications } from "@/lib/contexts/notification-context"
 
 interface TeamSubmissionProps {
-  team: any
+  team: {
+    id: string
+    ideaTitle?: string | null
+    ideaDescription?: string | null
+    ideaLink?: string | null
+    isSubmitted?: boolean
+  }
+}
+
+interface TeamSubmissionClientProps extends TeamSubmissionProps {
   onSubmissionUpdate: () => void
 }
 
-export function TeamSubmission({ team, onSubmissionUpdate }: TeamSubmissionProps) {
+// Client-side wrapper component that handles the update callback
+export function TeamSubmission({ team }: TeamSubmissionProps) {
+  const handleUpdate = () => {
+    // Refresh the page or trigger a server action to refresh data
+    window.location.reload()
+  }
+
+  return <TeamSubmissionClient team={team} onSubmissionUpdate={handleUpdate} />
+}
+
+// Internal client component that handles all the interactivity
+function TeamSubmissionClient({ team, onSubmissionUpdate }: TeamSubmissionClientProps) {
   const [isEditingIdea, setIsEditingIdea] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [ideaTitle, setIdeaTitle] = useState(team?.ideaTitle || "")
@@ -87,7 +107,7 @@ export function TeamSubmission({ team, onSubmissionUpdate }: TeamSubmissionProps
           value={ideaDescription}
           onChange={(e) => setIdeaDescription(e.target.value)}
           placeholder="Describe your project idea in detail"
-          className="bg-white/10 border-white/20 text-white min-h-[150px] w-full"
+          className="bg-white/10 border-white/20 text-white min-h-[150px] lg:min-h-[200px] w-full resize-y"
         />
       </div>
       <div>
@@ -99,11 +119,11 @@ export function TeamSubmission({ team, onSubmissionUpdate }: TeamSubmissionProps
           className="bg-white/10 border-white/20 text-white w-full"
         />
       </div>
-      <div className="flex space-x-3 justify-end pt-2">
+      <div className="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-2">
         {isEditingIdea && (
           <Button 
             variant="outline"
-            className="border-white/20 text-white hover:bg-white/10"
+            className="border-white/20 text-white hover:bg-white/10 w-full sm:w-auto"
             onClick={() => {
               setIsEditingIdea(false)
               setIdeaTitle(team.ideaTitle || "")
@@ -115,7 +135,7 @@ export function TeamSubmission({ team, onSubmissionUpdate }: TeamSubmissionProps
           </Button>
         )}
         <Button 
-          className="bg-emerald-500 hover:bg-emerald-600 text-white min-w-[140px]"
+          className="bg-emerald-500 hover:bg-emerald-600 text-white w-full sm:w-auto min-w-[140px]"
           onClick={submitIdea}
           disabled={isSubmitting}
         >
@@ -136,18 +156,18 @@ export function TeamSubmission({ team, onSubmissionUpdate }: TeamSubmissionProps
   )
 
   return (
-    <div className="bg-white/10 rounded-xl p-6 mb-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl text-white font-bold">Project Idea</h3>
+    <div className="bg-white/10 rounded-xl p-4 sm:p-6 lg:p-8 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 mb-6">
+        <h3 className="text-xl lg:text-2xl text-white font-bold">Project Idea</h3>
         {team.isSubmitted && !isEditingIdea && (
-          <div className="flex items-center space-x-3">
-            <Badge className="bg-emerald-500/30 text-white hover:bg-emerald-500/40 px-3 py-1">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <Badge className="bg-emerald-500/30 text-white hover:bg-emerald-500/40 px-3 py-1 w-fit">
               <CheckCircle className="h-3 w-3 mr-1.5" /> Submitted
             </Badge>
             <Button 
               size="sm"
               variant="outline"
-              className="border-white/20 text-white hover:bg-white/10"
+              className="border-white/20 text-white hover:bg-white/10 w-full sm:w-auto"
               onClick={() => setIsEditingIdea(true)}
             >
               <Edit className="h-4 w-4 mr-1.5" /> Edit Submission
@@ -160,21 +180,21 @@ export function TeamSubmission({ team, onSubmissionUpdate }: TeamSubmissionProps
         isEditingIdea ? (
           <SubmissionForm />
         ) : (
-          <div className="bg-white/5 rounded-lg p-5 space-y-4">
-            <h4 className="text-xl font-bold text-white">{team.ideaTitle || "No Title"}</h4>
+          <div className="bg-white/5 rounded-lg p-4 sm:p-5 lg:p-6 space-y-4">
+            <h4 className="text-xl lg:text-2xl font-bold text-white">{team.ideaTitle || "No Title"}</h4>
             <p className="text-white/80 whitespace-pre-line leading-relaxed">
               {team.ideaDescription || "No description provided."}
             </p>
             {team.ideaLink && (
               <div className="flex items-center pt-2">
-                <LinkIcon className="h-4 w-4 text-pink-400 mr-2" />
+                <LinkIcon className="h-4 w-4 text-pink-400 mr-2 flex-shrink-0" />
                 <a 
                   href={team.ideaLink} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-pink-400 hover:text-pink-300 underline text-sm"
+                  className="text-pink-400 hover:text-pink-300 underline text-sm break-all"
                 >
-                  View Demo
+                  {team.ideaLink}
                 </a>
               </div>
             )}
@@ -184,8 +204,8 @@ export function TeamSubmission({ team, onSubmissionUpdate }: TeamSubmissionProps
         <div className="space-y-6">
           <div className="bg-amber-500/20 rounded-lg p-4 border border-amber-500/30">
             <div className="flex items-center text-white/90 font-medium">
-              <AlertTriangle className="h-4 w-4 mr-2 text-amber-400" />
-              No submission yet
+              <AlertTriangle className="h-4 w-4 mr-2 flex-shrink-0 text-amber-400" />
+              <span>No submission yet</span>
             </div>
             <p className="text-white/70 text-sm mt-1.5">
               Create and submit your project idea before the deadline.
