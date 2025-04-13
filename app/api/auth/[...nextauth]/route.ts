@@ -1,6 +1,6 @@
 // app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth"
-import { authOptions } from "../options"
+import { authOptions } from '@/app/api/auth/options'
 
 // Extend the Session type to include custom properties
 declare module "next-auth" {
