@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/options'
-import { autoAssignUsersToTeams } from '@/lib/domainUtils'
-import { broadcastEvent } from '../../events/route'
 import prisma from '@/lib/prisma'
+import { broadcastEvent } from '@/lib/eventUtils'
+import { autoAssignUsersToTeams } from '@/lib/domainUtils'
 
 export async function POST(req: Request) {
   try {
@@ -49,4 +49,4 @@ export async function POST(req: Request) {
     console.error('Error auto-assigning teams:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}

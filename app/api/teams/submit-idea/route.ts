@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from '@/app/api/auth/options'
 import prisma from "@/lib/prisma"
-import { broadcastEvent } from "../../events/route"
+import { broadcastEvent } from "@/lib/eventUtils"
 
 export async function POST(req: NextRequest) {
   try {
@@ -120,4 +120,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     )
   }
-} 
+}

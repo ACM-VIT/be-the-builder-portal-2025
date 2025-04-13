@@ -1,32 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// Store active connections
-const clients = new Set<ReadableStreamController<Uint8Array>>();
-
-// Allowed event types
-export type EventType = 
-  | 'team-assigned' 
-  | 'team-updated' 
-  | 'idea-submitted'
-  | 'deadline-updated'
-  | 'event-started'
-  | 'event-ended';
-
-// Event data structure
-export type EventData = {
-  type: EventType;
-  data: any;
-};
-
-// Helper: Broadcast an event to all connected clients (local helper, not exported)
-export function broadcastEvent(event: EventData) {
-  const eventString = `data: ${JSON.stringify(event)}\n\n`;
-  const encoder = new TextEncoder();
-
-  clients.forEach((client) => {
-    client.enqueue(encoder.encode(eventString));
-  });
-}
+import { clients, broadcastEvent, type EventData } from "@/lib/eventUtils";
 
 // GET handler: Sets up a Server-Sent Events (SSE) connection
 export async function GET(req: NextRequest) {
@@ -67,7 +40,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid event data' }, { status: 400 });
     }
     
-    // Broadcast the event using the local helper function
+    // Broadcast the event using the utility function
     broadcastEvent(eventData);
     
     return NextResponse.json({ success: true });

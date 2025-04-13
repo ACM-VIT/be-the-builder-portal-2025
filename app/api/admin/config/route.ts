@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/app/api/auth/options'
 import { Prisma, PrismaClient } from '@prisma/client'
 import prisma from '@/lib/prisma'
-import { broadcastEvent } from '@/app/api/events/route'
+import { broadcastEvent } from '@/lib/eventUtils'
 
 // Type check prisma instance
 const _prismaCheck: PrismaClient = prisma
@@ -84,4 +84,4 @@ export async function POST(request: NextRequest) {
     console.error('Error updating config:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-} 
+}
