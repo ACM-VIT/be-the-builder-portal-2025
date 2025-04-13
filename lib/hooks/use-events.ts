@@ -24,63 +24,63 @@ export function useEvents() {
   const eventSourceRef = useRef<EventSource | null>(null)
   const handlersRef = useRef<Map<EventType, Set<EventHandler>>>(new Map())
   
-  // Connect to the SSE endpoint
-  const connect = useCallback(() => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close()
-    }
+  // // Connect to the SSE endpoint
+  // const connect = useCallback(() => {
+  //   if (eventSourceRef.current) {
+  //     eventSourceRef.current.close()
+  //   }
     
-    try {
-      const eventSource = new EventSource('/api/events')
-      eventSourceRef.current = eventSource
+  //   try {
+  //     // const eventSource = new EventSource('/api/events')
+  //     // eventSourceRef.current = eventSource
       
-      eventSource.onopen = () => {
-        setIsConnected(true)
-        setError(null)
-      }
+  //     // eventSource.onopen = () => {
+  //     //   setIsConnected(true)
+  //     //   setError(null)
+  //     // }
       
-      eventSource.onerror = (err) => {
-        setIsConnected(false)
-        setError('Connection to server failed. Reconnecting...')
-        console.error('EventSource error:', err)
+  //     eventSource.onerror = (err) => {
+  //       setIsConnected(false)
+  //       setError('Connection to server failed. Reconnecting...')
+  //       console.error('EventSource error:', err)
         
-        // Try to reconnect after a delay
-        setTimeout(() => {
-          eventSource.close()
-          connect()
-        }, 3000)
-      }
+  //       // Try to reconnect after a delay
+  //       setTimeout(() => {
+  //         eventSource.close()
+  //         connect()
+  //       }, 3000)
+  //     }
       
-      eventSource.onmessage = (event) => {
-        try {
-          const eventData = JSON.parse(event.data) as EventData
-          setLastEvent(eventData)
+  //     eventSource.onmessage = (event) => {
+  //       try {
+  //         const eventData = JSON.parse(event.data) as EventData
+  //         setLastEvent(eventData)
           
-          // Find and call handlers for this event type
-          const handlers = handlersRef.current.get(eventData.type)
-          if (handlers) {
-            handlers.forEach(handler => handler(eventData))
-          }
+  //         // Find and call handlers for this event type
+  //         const handlers = handlersRef.current.get(eventData.type)
+  //         if (handlers) {
+  //           handlers.forEach(handler => handler(eventData))
+  //         }
           
-          // If it's a connected event, make sure we set the state
-          if (eventData.type === 'connected') {
-            setIsConnected(true)
-          }
-        } catch (err) {
-          console.error('Error parsing event data:', err)
-        }
-      }
+  //         // If it's a connected event, make sure we set the state
+  //         if (eventData.type === 'connected') {
+  //           setIsConnected(true)
+  //         }
+  //       } catch (err) {
+  //         console.error('Error parsing event data:', err)
+  //       }
+  //     }
       
-      return () => {
-        eventSource.close()
-        eventSourceRef.current = null
-      }
-    } catch (err) {
-      setError('Failed to connect to the server')
-      console.error('Error connecting to events:', err)
-      return undefined
-    }
-  }, [])
+  //     return () => {
+  //       eventSource.close()
+  //       eventSourceRef.current = null
+  //     }
+  //   } catch (err) {
+  //     setError('Failed to connect to the server')
+  //     console.error('Error connecting to events:', err)
+  //     return undefined
+  //   }
+  // }, [])
   
   // Register a handler for a specific event type
   const on = useCallback((eventType: EventType, handler: EventHandler) => {
@@ -104,16 +104,6 @@ export function useEvents() {
   const off = useCallback((eventType: EventType) => {
     handlersRef.current.delete(eventType)
   }, [])
-  
-  // Connect to the events when the component mounts
-  useEffect(() => {
-    const cleanup = connect()
-    
-    // Clean up the event source when the component unmounts
-    return () => {
-      if (cleanup) cleanup()
-    }
-  }, [connect])
   
   return {
     isConnected,
