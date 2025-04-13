@@ -1,11 +1,17 @@
+// app/page.tsx
 "use client"
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence, cubicBezier } from "framer-motion"
 import { signIn, useSession } from "next-auth/react"
+import dynamic from "next/dynamic"
 import { SplineScene } from "@/components/spline-scene"
 import { SplashCursor } from "@/components/splash-cursor"
 import { Dashboard } from "@/components/dashboard"
+import { NotificationProvider } from "@/lib/contexts/notification-context"
+
+// No need for SSR for AdminView since it's a client component that fetches its own data
+const AdminView = dynamic(() => import("@/components/admin-view"), { ssr: false })
 
 export default function Home() {
   const [mounted, setMounted] = useState(false)
@@ -26,6 +32,8 @@ export default function Home() {
   }
 
   const showDashboard = status === "authenticated" && session
+
+  const isAdmin = session?.user?.isAdmin === true
 
   const ultraSlowAcceleration = cubicBezier(0.01, 0.0, 0.05, 1.0)
 
@@ -138,12 +146,12 @@ export default function Home() {
                 style={{
                   position: "absolute",
                   inset: 0,
-                  backgroundColor: "rgba(76, 29, 149, 0)",
+                  backgroundColor: "rgba(255,182,193, 0)",
                   pointerEvents: "none",
                   zIndex: 8,
                 }}
                 animate={{
-                  backgroundColor: isZooming ? "rgba(76, 29, 149, 1)" : "rgba(76, 29, 149, 0)",
+                  backgroundColor: isZooming ? "rgba(255,182,193, 0.8)" : "rgba(255,182,193, 0)",
                 }}
                 transition={{
                   duration: 6,
@@ -163,29 +171,14 @@ export default function Home() {
                 }}
                 animate={
                   isZooming
-                    ? {
-                        opacity: 0,
-                        y: -100,
-                        scale: 0.7,
-                      }
-                    : {
-                        opacity: 1,
-                        y: 0,
-                        scale: 1,
-                      }
+                    ? { opacity: 0, y: -100, scale: 0.7 }
+                    : { opacity: 1, y: 0, scale: 1 }
                 }
-                transition={{
-                  duration: 0.2,
-                  ease: ultraSlowAcceleration,
-                }}
+                transition={{ duration: 0.2, ease: ultraSlowAcceleration }}
               >
                 <h1
                   className="pp-editorial"
-                  style={{
-                    fontSize: "clamp(2rem, 8vw, 6rem)",
-                    marginBottom: "1rem",
-                    color: "white",
-                  }}
+                  style={{ fontSize: "clamp(2rem, 8vw, 6rem)", marginBottom: "1rem", color: "white" }}
                 >
                   Be The Builder
                 </h1>
@@ -202,9 +195,23 @@ export default function Home() {
           </main>
         </motion.div>
       ) : (
-        <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-          <Dashboard user={session.user} />
-        </motion.div>
+        // If authenticated, render AdminView if admin, else render the participant Dashboard.
+        isAdmin ? (
+          <NotificationProvider>
+            <AdminView />
+          </NotificationProvider>
+        ) : (
+          <motion.div
+            key="dashboard"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <NotificationProvider>
+              <Dashboard user={session.user!} />
+            </NotificationProvider>
+          </motion.div>
+        )
       )}
     </AnimatePresence>
   )
