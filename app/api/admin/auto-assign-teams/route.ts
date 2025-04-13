@@ -17,12 +17,8 @@ export async function POST(req: Request) {
     
     // Auto-assign users to teams
     const result = await autoAssignUsersToTeams()
-    
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error || 'Failed to auto-assign teams' },
-        { status: 500 }
-      )
+    if (!result) {
+      return NextResponse.json({ error: 'Failed to auto-assign teams' }, { status: 500 })
     }
     
     // Get all teams with assigned users to broadcast

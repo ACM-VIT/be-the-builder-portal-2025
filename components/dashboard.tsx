@@ -702,7 +702,7 @@ export function Dashboard({ user }: DashboardProps) {
       <div className="absolute inset-0 z-0">
         {mounted && (
           <SplineScene
-            scene="https://prod.spline.design/Uuh3u5oK6J1E307V/scene.splinecode"
+            scene="https://prod.spline.design/Bt-GQIu5bt160khd/scene.splinecode"
             className="w-full h-full"
           />
         )}

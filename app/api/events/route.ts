@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Store active connections
 const clients = new Set<ReadableStreamController<Uint8Array>>();
 
-// Types of events
+// Allowed event types
 export type EventType = 
   | 'team-assigned' 
   | 'team-updated' 
@@ -18,16 +18,17 @@ export type EventData = {
   data: any;
 };
 
-// Broadcast an event to all connected clients
+// Helper: Broadcast an event to all connected clients (local helper, not exported)
 export function broadcastEvent(event: EventData) {
   const eventString = `data: ${JSON.stringify(event)}\n\n`;
   const encoder = new TextEncoder();
-  
+
   clients.forEach((client) => {
     client.enqueue(encoder.encode(eventString));
   });
 }
 
+// GET handler: Sets up a Server-Sent Events (SSE) connection
 export async function GET(req: NextRequest) {
   // Set up SSE headers
   const headers = {
@@ -36,10 +37,10 @@ export async function GET(req: NextRequest) {
     'Connection': 'keep-alive',
   };
 
-  // Create a readable stream
+  // Create a readable stream for SSE
   const stream = new ReadableStream({
     start(controller) {
-      // Add this client to the set
+      // Add this client to the set for later broadcasting
       clients.add(controller);
 
       // Send an initial connection message
@@ -56,18 +57,17 @@ export async function GET(req: NextRequest) {
   return new NextResponse(stream, { headers });
 }
 
+// POST handler: Receives an event and broadcasts it to connected clients
 export async function POST(req: NextRequest) {
   try {
-    // Only allow admins to broadcast events via this endpoint
-    // In a production app, you'd want more robust authentication here
-    
+    // In production, add robust authentication to restrict who can broadcast events.
     const eventData = await req.json() as EventData;
     
     if (!eventData || !eventData.type) {
       return NextResponse.json({ error: 'Invalid event data' }, { status: 400 });
     }
     
-    // Broadcast the event to all connected clients
+    // Broadcast the event using the local helper function
     broadcastEvent(eventData);
     
     return NextResponse.json({ success: true });
@@ -75,4 +75,4 @@ export async function POST(req: NextRequest) {
     console.error('Error broadcasting event:', error);
     return NextResponse.json({ error: 'Failed to broadcast event' }, { status: 500 });
   }
-} 
+}
