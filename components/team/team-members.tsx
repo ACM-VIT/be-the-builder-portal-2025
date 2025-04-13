@@ -19,7 +19,7 @@ interface TeamMembersProps {
   currentUserId: string
   onRetry: () => void
   domainColors: Record<string, string>
-  getDomainIcon: (domain: string | null | undefined) => JSX.Element
+  getDomainIcon: (domain: string | null | undefined) => React.JSX.Element
 }
 
 export function TeamMembers({ 
