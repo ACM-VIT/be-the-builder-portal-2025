@@ -664,7 +664,7 @@ export function Dashboard({ user }: DashboardProps) {
       case 'management':
         return "You help coordinate team efforts and ensure the project stays on track.";
       default:
-        return "Your domain expertise will be assigned soon.";
+        return "Your domain will be assigned soon.";
     }
   }
 
