@@ -6,7 +6,6 @@ import { broadcastEvent } from "@/lib/eventUtils"
 
 export async function PUT(req: NextRequest) {
   try {
-    // Check if user is authenticated and has a team
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.id) {
@@ -23,7 +22,6 @@ export async function PUT(req: NextRequest) {
       )
     }
     
-    // Get and validate the new team name
     const { name } = await req.json()
     
     if (!name || typeof name !== 'string' || name.trim().length < 3) {
@@ -33,7 +31,6 @@ export async function PUT(req: NextRequest) {
       )
     }
     
-    // Update the team name
     const updatedTeam = await prisma.team.update({
       where: { id: session.user.teamId },
       data: { name: name.trim() },
@@ -49,7 +46,6 @@ export async function PUT(req: NextRequest) {
       }
     })
     
-    // Broadcast team update event
     broadcastEvent({
       type: 'team-updated',
       data: {

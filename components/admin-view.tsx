@@ -1,4 +1,3 @@
-// components/AdminView.tsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -17,14 +16,10 @@ import {
   Megaphone,
   Tag,
   Settings as SettingsIcon,
-  Calendar,
-  Clock,
-  Plus,
   Trash2,
   Edit
 } from "lucide-react"
 
-// Define minimal types using Prisma helper types.
 type MinimalUser = Prisma.UserGetPayload<{
   select: { id: true; name: true; email: true; domain: true; teamId: true }
 }>
@@ -86,7 +81,6 @@ export default function AdminView() {
   const [activeTab, setActiveTab] = useState<'users' | 'teams' | 'stats' | 'assign' | 'tracks' | 'settings'>('stats')
   const [isSaving, setIsSaving] = useState(false)
 
-  // Domain color map for consistent coloring
   const domainColors: Record<string, string> = {
     'cc': '#FF50A2',
     'web': '#FF8C42',
@@ -130,7 +124,6 @@ export default function AdminView() {
         }
       } catch (error) {
         console.error('Error fetching admin data:', error)
-        // Initialize with empty arrays on error
         setDomains([])
       } finally {
         setLoading(false)
@@ -175,7 +168,6 @@ export default function AdminView() {
         throw new Error('Failed to auto-assign teams')
       }
       
-      // Refresh data after assignment
       const [usersResponse, teamsResponse] = await Promise.all([
         fetch('/api/admin/users'),
         fetch('/api/admin/teams-with-users')
@@ -223,7 +215,6 @@ export default function AdminView() {
     )
   }
 
-  // Count users by domain
   const usersByDomain: Record<string, number> = {}
   users.forEach(user => {
     if (user.domain) {
@@ -231,7 +222,6 @@ export default function AdminView() {
     }
   })
 
-  // Count users without teams
   const usersWithoutTeam = users.filter(user => !user.teamId)
 
   const renderStatsTab = () => (

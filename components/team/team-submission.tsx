@@ -57,14 +57,12 @@ function SubmitButton() {
   )
 }
 
-// Client component that handles all the interactivity
 export function TeamSubmission({ team }: TeamSubmissionProps) {
   const [isEditingIdea, setIsEditingIdea] = useState(false)
   const { notify } = useNotifications()
   const router = useRouter()
   const formRef = useRef<HTMLFormElement>(null)
 
-  // Optimistic update state
   const [optimisticTeam, updateOptimisticTeam] = useOptimistic({
     initialData: team,
     updateFn: (currentState: TeamData, newData: Partial<TeamData>) => ({
@@ -76,7 +74,6 @@ export function TeamSubmission({ team }: TeamSubmissionProps) {
   const initialState = { message: '', error: '' }
 
   const [state, formAction] = useFormState(async (prevState: any, formData: FormData) => {
-    // Update optimistically
     const title = formData.get('title')?.toString()
     const description = formData.get('description')?.toString()
     const link = formData.get('link')?.toString()
@@ -96,7 +93,6 @@ export function TeamSubmission({ team }: TeamSubmissionProps) {
       router.refresh()
       return { message: 'Success', error: '' }
     } else {
-      // Revert optimistic update on error by refreshing
       router.refresh()
       notify("Error", result.error || "Failed to submit idea", "error")
       return { message: '', error: result.error || "Failed to submit idea" }

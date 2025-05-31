@@ -96,7 +96,6 @@ export function Notification({
   )
 }
 
-// Component for managing multiple notifications
 export interface NotificationItem extends NotificationProps {
   id: string
 }

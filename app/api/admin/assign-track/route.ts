@@ -6,10 +6,8 @@ import { broadcastEvent } from '@/lib/eventUtils'
 
 export async function POST(request: NextRequest) {
   try {
-    // Get the session to check if the user is an admin
     const session = await getServerSession(authOptions)
     
-    // Check if the user is authorized (is an admin)
     if (!session?.user?.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -20,7 +18,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Team ID is required' }, { status: 400 })
     }
     
-    // Update the team
     const updatedTeam = await prisma.team.update({
       where: { id: teamId },
       data: { 
@@ -39,7 +36,6 @@ export async function POST(request: NextRequest) {
       }
     })
     
-    // Broadcast team update event
     broadcastEvent({
       type: 'team-updated',
       data: {

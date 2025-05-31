@@ -6,7 +6,6 @@ import { broadcastEvent } from "@/lib/eventUtils"
 
 export async function POST(req: NextRequest) {
   try {
-    // Check if user is an admin
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.isAdmin) {
@@ -16,10 +15,8 @@ export async function POST(req: NextRequest) {
       )
     }
     
-    // Get deadline data
     const { deadline } = await req.json()
     
-    // Validate the deadline
     let deadlineDate: Date | null = null
     
     if (deadline) {
@@ -36,7 +33,6 @@ export async function POST(req: NextRequest) {
       }
     }
     
-    // Create or update the config
     const config = await (prisma as any).config.upsert({
       where: { id: 'singleton' },
       create: {
@@ -51,7 +47,6 @@ export async function POST(req: NextRequest) {
       }
     })
     
-    // Broadcast deadline update event
     broadcastEvent({
       type: 'deadline-updated',
       data: {

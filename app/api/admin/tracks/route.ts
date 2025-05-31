@@ -5,15 +5,12 @@ import prisma from '@/lib/prisma'
 
 export async function GET() {
   try {
-    // Get the session to check if the user is an admin
     const session = await getServerSession(authOptions)
     
-    // Check if the user is authorized (is an admin)
     if (!session?.user?.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     
-    // Fetch all tracks
     const tracks = await prisma.track.findMany({
       orderBy: { name: 'asc' },
       include: {
@@ -32,10 +29,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    // Get the session to check if the user is an admin
     const session = await getServerSession(authOptions)
     
-    // Check if the user is authorized (is an admin)
     if (!session?.user?.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -46,7 +41,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Track name is required' }, { status: 400 })
     }
     
-    // Create a new track
     const track = await prisma.track.create({
       data: {
         name: name.trim(),
@@ -64,10 +58,8 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    // Get the session to check if the user is an admin
     const session = await getServerSession(authOptions)
     
-    // Check if the user is authorized (is an admin)
     if (!session?.user?.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -82,7 +74,6 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Track name is required' }, { status: 400 })
     }
     
-    // Update the track
     const track = await prisma.track.update({
       where: { id },
       data: {
@@ -101,10 +92,8 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    // Get the session to check if the user is an admin
     const session = await getServerSession(authOptions)
     
-    // Check if the user is authorized (is an admin)
     if (!session?.user?.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -116,13 +105,11 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Track ID is required' }, { status: 400 })
     }
     
-    // First, update any teams that have this track to remove the trackId
     await prisma.team.updateMany({
       where: { trackId: id },
       data: { trackId: null }
     })
     
-    // Then delete the track
     await prisma.track.delete({
       where: { id }
     })

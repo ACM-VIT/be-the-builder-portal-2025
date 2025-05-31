@@ -1,8 +1,6 @@
-// app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth"
 import { authOptions } from '@/app/api/auth/options'
 
-// Extend the Session type to include custom properties
 declare module "next-auth" {
   interface Session {
     user: {
@@ -16,7 +14,6 @@ declare module "next-auth" {
     }
   }
   
-  // Extend the User type for custom fields
   interface User {
     id: string
     domain?: string | null
@@ -24,8 +21,6 @@ declare module "next-auth" {
   }
 }
 
-// Initialize NextAuth handler using our options
 const handler = NextAuth(authOptions);
 
-// Export only the GET and POST methods for the route as required by Next.js 15
 export { handler as GET, handler as POST };

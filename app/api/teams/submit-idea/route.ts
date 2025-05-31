@@ -6,7 +6,6 @@ import { broadcastEvent } from "@/lib/eventUtils"
 
 export async function POST(req: NextRequest) {
   try {
-    // Check if user is authenticated and has a team
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.id) {
@@ -23,10 +22,8 @@ export async function POST(req: NextRequest) {
       )
     }
     
-    // Get idea details
     const { title, description, link } = await req.json()
     
-    // Validate input
     if (!title || typeof title !== 'string' || title.trim().length < 3) {
       return NextResponse.json(
         { error: "Idea title must be at least 3 characters" },
@@ -41,7 +38,6 @@ export async function POST(req: NextRequest) {
       )
     }
     
-    // Validate link if provided
     let validatedLink = null
     if (link) {
       try {
@@ -61,8 +57,6 @@ export async function POST(req: NextRequest) {
       }
     }
     
-    // Check for deadline - The schema was just updated, so run migration before this will work
-    // Omitting this check for now until migration is run
     /*
     const config = await prisma.config.findFirst()
     
@@ -74,12 +68,9 @@ export async function POST(req: NextRequest) {
     }
     */
     
-    // Update the team with idea details
     const updatedTeam = await prisma.team.update({
       where: { id: session.user.teamId },
       data: { 
-        // These fields depend on the migration being run
-        // Adding a type assertion to bypass TypeScript error
         ...(({
           ideaTitle: title.trim(),
           ideaDescription: description.trim(),
@@ -100,7 +91,6 @@ export async function POST(req: NextRequest) {
       }
     })
     
-    // Broadcast idea submission event
     broadcastEvent({
       type: 'idea-submitted',
       data: {

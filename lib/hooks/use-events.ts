@@ -82,7 +82,6 @@ export function useEvents() {
   //   }
   // }, [])
   
-  // Register a handler for a specific event type
   const on = useCallback((eventType: EventType, handler: EventHandler) => {
     if (!handlersRef.current.has(eventType)) {
       handlersRef.current.set(eventType, new Set())
@@ -91,7 +90,6 @@ export function useEvents() {
     const handlers = handlersRef.current.get(eventType)!
     handlers.add(handler)
     
-    // Return a function to unregister the handler
     return () => {
       handlers.delete(handler)
       if (handlers.size === 0) {
@@ -100,7 +98,6 @@ export function useEvents() {
     }
   }, [])
   
-  // Remove all handlers for a specific event type
   const off = useCallback((eventType: EventType) => {
     handlersRef.current.delete(eventType)
   }, [])
@@ -114,7 +111,6 @@ export function useEvents() {
   }
 }
 
-// A simpler hook for components that just need to listen for specific events
 export function useEventListener(eventType: EventType, handler: EventHandler) {
   const { on } = useEvents()
   

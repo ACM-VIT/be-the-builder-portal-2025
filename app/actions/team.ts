@@ -27,7 +27,6 @@ export async function submitTeamIdea(formData: FormData) {
     const description = formData.get('description')?.toString() || ''
     const link = formData.get('link')?.toString() || null
 
-    // Validate the input data
     const validationResult = teamIdeaSchema.safeParse({
       title,
       description,
@@ -39,7 +38,6 @@ export async function submitTeamIdea(formData: FormData) {
       return { error: errorMessage }
     }
 
-    // Update the team in the database
     try {
       await prisma.team.update({
         where: {
@@ -54,7 +52,6 @@ export async function submitTeamIdea(formData: FormData) {
         },
       })
 
-      // Revalidate all team-related paths to ensure fresh data
       revalidatePath('/team')
       revalidatePath('/dashboard')
       revalidatePath('/')

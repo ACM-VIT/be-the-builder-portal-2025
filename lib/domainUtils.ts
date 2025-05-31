@@ -1,8 +1,7 @@
 import domains from './sort.json';
-import prisma, { checkConnectionHealth, resetPrismaConnection } from './prisma';
+import prisma from './prisma';
 import { Prisma } from "@prisma/client";
 
-// Map of emails to their domains from sort.json
 const emailToDomainMap = new Map(
   domains.map((entry: { Email: string; Domain: string }) => [
     entry.Email.toLowerCase(),
@@ -11,20 +10,13 @@ const emailToDomainMap = new Map(
 );
 
 const RETRY_CODES = [
-  'P1001', // The database server is not reachable
-  'P1002', // The database server was reached but timed out
-  'P1008', // Operations timed out
-  'P1017', // Server has closed the connection
-  'P2024', // Connection pool timeout
+  'P1001',
+  'P1002',
+  'P1008',
+  'P1017',
+  'P2024',
 ];
 
-/**
- * Retry a database operation with exponential backoff
- * @param operation The database operation to retry
- * @param maxRetries Maximum number of retry attempts
- * @param initialDelay Initial delay in milliseconds
- * @returns Result of the operation
- */
 async function retryOperation<T>(
   operation: () => Promise<T>,
   maxRetries = 3,
@@ -51,9 +43,6 @@ async function retryOperation<T>(
   }
 }
 
-/**
- * Assign domain to user based on sort.json mapping
- */
 export async function assignDomainToUser(userId: string, email: string) {
   const domain = emailToDomainMap.get(email.toLowerCase());
   
@@ -74,13 +63,9 @@ export async function assignDomainToUser(userId: string, email: string) {
   return { error: 'Domain not found in sort.json' };
 }
 
-/**
- * Get teams with counts of users by domain
- */
 export async function getTeamsWithDomainCounts() {
   try {
     return await retryOperation(async () => {
-      // Get all teams
       const teams = await prisma.team.findMany({
         include: {
           users: {
@@ -91,7 +76,6 @@ export async function getTeamsWithDomainCounts() {
         },
       });
 
-      // Count users by domain for each team
       const teamsWithDomainCounts = teams.map((team) => {
         const domainCounts: Record<string, number> = {};
 
@@ -115,9 +99,6 @@ export async function getTeamsWithDomainCounts() {
   }
 }
 
-/**
- * Get a list of all unique domains from sort.json
- */
 export async function getAllDomains() {
   try {
     return await retryOperation(async () => {
@@ -132,7 +113,6 @@ export async function getAllDomains() {
         },
       });
 
-      // Get unique domains
       const domains = [...new Set(users.map((user) => user.domain))];
       return domains.filter(Boolean) as string[];
     });
@@ -142,9 +122,6 @@ export async function getAllDomains() {
   }
 }
 
-/**
- * Automatically assign users to teams to ensure domain distribution
- */
 export async function autoAssignUsersToTeams() {
   try {
     return await retryOperation(async () => {
@@ -166,7 +143,6 @@ export async function autoAssignUsersToTeams() {
         if (!user.email) continue;
         
         const assignResult = await assignDomainToUser(user.id, user.email);
-        // Check if assignResult is not an error object
         if (!('error' in assignResult)) {
           count++;
         }

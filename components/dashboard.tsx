@@ -1,4 +1,3 @@
-// components/Dashboard.tsx (Client Component)
 "use client"
 
 import { useState, useEffect, useRef } from "react"
@@ -17,13 +16,10 @@ import {
   ChevronDown, 
   CalendarClock,
   Edit,
-  Clock,
-  Link as LinkIcon,
-  Send,
+  Clock,  Send,
   CheckCircle,
   AlertTriangle,
   Loader2,
-  Rocket,
   BrainCircuit
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -31,11 +27,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { signOut } from "next-auth/react"
 import { useEvents, EventType, EventData } from "@/lib/hooks/use-events"
 import { useNotifications } from "@/lib/contexts/notification-context"
-import { Tooltip } from "@/components/ui/tooltip"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Progress } from "@/components/ui/progress"
-import { Badge } from "@/components/ui/badge"
 import { TeamInfo } from "@/components/team/team-info"
 import { TeamSubmission } from "@/components/team/team-submission"
 import { TeamMembers } from "@/components/team/team-members"
@@ -49,7 +40,6 @@ interface CustomUser {
   teamId?: string | null
 }
 
-// Extended team interface with idea submission details
 interface TeamWithIdea {
   id: string
   name: string
@@ -96,14 +86,12 @@ export function Dashboard({ user }: DashboardProps) {
   useEffect(() => {
     setMounted(true)
     
-    // Fetch team data if the user has a team ID
     if (user.teamId) {
       fetchTeamData()
     } else {
       setIsLoading(false)
     }
 
-    // Fetch config to get the deadline
     fetchConfig()
     
     return () => {
@@ -113,11 +101,9 @@ export function Dashboard({ user }: DashboardProps) {
     }
   }, [user.teamId])
   
-  // Set up real-time event listeners
   const { on } = useEvents()
   
   useEffect(() => {
-    // Handle team assignment event
     const teamAssignedCleanup = on('team-assigned', (event: EventData) => {
       if (event.data?.teams) {
         const userTeam = event.data.teams.find((t: any) => 
@@ -133,7 +119,6 @@ export function Dashboard({ user }: DashboardProps) {
       }
     })
     
-    // Handle team update event
     const teamUpdatedCleanup = on('team-updated', (event: EventData) => {
       if (event.data?.team && event.data.team.id === user.teamId) {
         setTeam(event.data.team)
@@ -142,7 +127,6 @@ export function Dashboard({ user }: DashboardProps) {
       }
     })
     
-    // Handle idea submission event
     const ideaSubmittedCleanup = on('idea-submitted', (event: EventData) => {
       if (event.data?.team && event.data.team.id === user.teamId) {
         setTeam(event.data.team)
@@ -153,7 +137,6 @@ export function Dashboard({ user }: DashboardProps) {
       }
     })
     
-    // Handle deadline updates
     const deadlineUpdatedCleanup = on('deadline-updated', (event: EventData) => {
       if (event.data?.deadline) {
         setDeadline(new Date(event.data.deadline))
@@ -161,7 +144,6 @@ export function Dashboard({ user }: DashboardProps) {
       }
     })
     
-    // Clean up event listeners
     return () => {
       teamAssignedCleanup()
       teamUpdatedCleanup()
@@ -170,7 +152,6 @@ export function Dashboard({ user }: DashboardProps) {
     }
   }, [on, user.id, user.teamId, notify])
   
-  // Timer for countdown
   useEffect(() => {
     if (deadline && !isNaN(deadline.getTime())) {
       const updateTimer = () => {
@@ -193,7 +174,6 @@ export function Dashboard({ user }: DashboardProps) {
         setTimeRemaining({ days, hours, minutes, seconds })
       }
       
-      // Run immediately and then set up interval
       updateTimer()
       timerRef.current = setInterval(updateTimer, 1000)
       
@@ -203,18 +183,15 @@ export function Dashboard({ user }: DashboardProps) {
         }
       }
     } else {
-      // If no valid deadline, ensure timeRemaining is null
       setTimeRemaining(null)
     }
   }, [deadline])
   
-  // Function to fetch team data
   const fetchTeamData = async (retry = true) => {
     try {
       setIsTeamDataError(false)
       setIsLoading(true)
       
-      // Check if user has a teamId - prevent unnecessary API calls
       if (!user.teamId) {
         setIsLoading(false)
         return;
@@ -234,7 +211,6 @@ export function Dashboard({ user }: DashboardProps) {
         console.warn(`Error fetching team data: ${response.status} ${response.statusText}`)
         
         if (response.status === 404 && retry) {
-          // If it's a 404, wait a bit and try once more (might be eventual consistency issue)
           setTimeout(() => fetchTeamData(false), 2000);
           return;
         }
@@ -251,7 +227,6 @@ export function Dashboard({ user }: DashboardProps) {
     }
   }
   
-  // Function to fetch config (deadline)
   const fetchConfig = async (retry = true) => {
     try {
       setIsConfigError(false)
@@ -261,7 +236,6 @@ export function Dashboard({ user }: DashboardProps) {
         const data = await response.json()
         if (data.deadline) {
           const deadlineDate = new Date(data.deadline)
-          // Validate that we have a valid date
           if (!isNaN(deadlineDate.getTime())) {
             setDeadline(deadlineDate)
           }
@@ -270,7 +244,6 @@ export function Dashboard({ user }: DashboardProps) {
         console.warn(`Error fetching config: ${response.status} ${response.statusText}`)
         
         if (response.status === 404 && retry) {
-          // If it's a 404, wait a bit and try once more
           setTimeout(() => fetchConfig(false), 2000);
           return;
         }
@@ -675,13 +648,12 @@ export function Dashboard({ user }: DashboardProps) {
     }
   }
 
-  // Helper function to calculate deadline progress percentage
   const calculateDeadlineProgress = () => {
     if (!deadline) return 0;
     
     const now = new Date();
     const start = new Date(deadline);
-    start.setDate(start.getDate() - 14); // Assuming 2-week event period
+    start.setDate(start.getDate() - 14);
     
     const total = deadline.getTime() - start.getTime();
     const elapsed = now.getTime() - start.getTime();
@@ -692,7 +664,6 @@ export function Dashboard({ user }: DashboardProps) {
     return (elapsed / total) * 100;
   }
 
-  // Add wrapper functions for event handlers
   const handleFetchConfig = () => {
     fetchConfig();
   };
@@ -705,7 +676,6 @@ export function Dashboard({ user }: DashboardProps) {
   //https://prod.spline.design/Bt-GQIu5bt160khd/scene.splinecode
   return (
     <div className="min-h-screen w-full overflow-hidden relative bg-gradient-to-br from-indigo-600 to-purple-700">
-      {/* Background Spline scene with reduced opacity */}
       <div className="absolute inset-0 z-0">
         {mounted && (
           <SplineScene
@@ -715,10 +685,8 @@ export function Dashboard({ user }: DashboardProps) {
         )}
       </div>
       
-      {/* Background overlay */}
       <div className="absolute inset-0 z-0 bg-gradient-to-b from-indigo-900/30 to-purple-900/50 backdrop-blur-sm" />
 
-      {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -785,7 +753,6 @@ export function Dashboard({ user }: DashboardProps) {
         </div>
       </motion.header>
 
-      {/* Tab Navigation */}
       <div className="relative z-10 flex justify-center mt-2 mb-8">
         <div className="bg-white/10 backdrop-blur-md rounded-full p-1 border border-white/20 inline-flex">
           <button
@@ -807,7 +774,6 @@ export function Dashboard({ user }: DashboardProps) {
         </div>
       </div>
 
-      {/* Main Content */}
       <main className="relative z-10 px-4 pb-24">
         <AnimatePresence mode="wait">
           {activeTab === 'home' && renderHomeTab()}

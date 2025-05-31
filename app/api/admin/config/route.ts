@@ -5,20 +5,16 @@ import { Prisma, PrismaClient } from '@prisma/client'
 import prisma from '@/lib/prisma'
 import { broadcastEvent } from '@/lib/eventUtils'
 
-// Type check prisma instance
 const _prismaCheck: PrismaClient = prisma
 
 export async function GET() {
   try {
-    // Get the session to check if the user is an admin
     const session = await getServerSession(authOptions)
     
-    // Check if the user is authorized (is an admin)
     if (!session?.user?.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     
-    // Get config from database
     const config = await (prisma as any).config.upsert({
       where: { id: 'singleton' },
       update: {},
@@ -37,10 +33,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    // Get the session to check if the user is an admin
     const session = await getServerSession(authOptions)
     
-    // Check if the user is authorized (is an admin)
     if (!session?.user?.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -48,7 +42,6 @@ export async function POST(request: NextRequest) {
     const data = await request.json()
     const { teamSize, deadline, eventStarted, eventEnded, tracksEnabled } = data
     
-    // Update config in database
     const updatedConfig = await (prisma as any).config.upsert({
       where: { id: 'singleton' },
       update: {
@@ -68,7 +61,6 @@ export async function POST(request: NextRequest) {
       }
     })
     
-    // Broadcast deadline update if it was changed
     if (deadline !== undefined) {
       broadcastEvent({
         type: 'deadline-updated',

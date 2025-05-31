@@ -23,10 +23,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Await the resolved params from the promise.
     const resolvedParams = await params
     
-    // Get user session.
     const session = await getServerSession(authOptions)
     
     if (!session?.user) {
@@ -36,7 +34,6 @@ export async function GET(
       )
     }
     
-    // Get team data with users.
     const team = await prisma.team.findUnique({
       where: { id: resolvedParams.id },
       include: {
@@ -59,7 +56,6 @@ export async function GET(
       )
     }
     
-    // Allow access only if the user is an admin or a team member.
     const isTeamMember = team.users.some(user => user.id === session.user.id)
     const isAdmin = session.user.isAdmin
     

@@ -1,17 +1,14 @@
 import React, { createContext, useContext, ReactNode } from 'react'
 import { NotificationManager, NotificationItem, NotificationType } from '@/components/notification'
 
-// Type for the notification context
 type NotificationContextType = {
   notify: (title: string, message: string, type?: NotificationType, duration?: number) => string
   removeNotification: (id: string) => void
   notifications: NotificationItem[]
 }
 
-// Create the context with a default value
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined)
 
-// Context provider component
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const { 
     addNotification, 
@@ -20,7 +17,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     NotificationList 
   } = NotificationManager()
   
-  // Helper function to add a notification
   const notify = (
     title: string, 
     message: string, 
@@ -44,7 +40,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   )
 }
 
-// Custom hook to use the notification context
 export function useNotifications() {
   const context = useContext(NotificationContext)
   

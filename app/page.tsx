@@ -10,7 +10,6 @@ import { SplashCursor } from "@/components/splash-cursor"
 import { Dashboard } from "@/components/dashboard"
 import { NotificationProvider } from "@/lib/contexts/notification-context"
 
-// No need for SSR for AdminView since it's a client component that fetches its own data
 const AdminView = dynamic(() => import("@/components/admin-view"), { ssr: false })
 
 export default function Home() {
@@ -195,7 +194,6 @@ export default function Home() {
           </main>
         </motion.div>
       ) : (
-        // If authenticated, render AdminView if admin, else render the participant Dashboard.
         isAdmin ? (
           <NotificationProvider>
             <AdminView />
